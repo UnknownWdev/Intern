@@ -3,6 +3,8 @@ import { loginUserApi, type User, type AuthCredentials } from "@/services/dummyJ
 
 export type { User } from "@/services/dummyJsonApi";
 
+const AUTH_STORAGE_KEY = "dummyjson-auth";
+
 type AuthState = {
   token: string | null;
   user: User | null;
@@ -10,9 +12,32 @@ type AuthState = {
   error: string | null;
 };
 
+const readStoredAuth = (): Pick<AuthState, "token" | "user"> => {
+  if (typeof window === "undefined") {
+    return { token: null, user: null };
+  }
+
+  try {
+    const stored = window.localStorage.getItem(AUTH_STORAGE_KEY);
+    if (!stored) {
+      return { token: null, user: null };
+    }
+
+    const parsed = JSON.parse(stored) as Partial<AuthState>;
+    return {
+      token: typeof parsed.token === "string" ? parsed.token : null,
+      user: parsed.user ?? null,
+    };
+  } catch {
+    return { token: null, user: null };
+  }
+};
+
+const storedAuth = readStoredAuth();
+
 const initialState: AuthState = {
-  token: null,
-  user: null,
+  token: storedAuth.token ?? null,
+  user: storedAuth.user ?? null,
   loading: false,
   error: null,
 };
@@ -39,6 +64,10 @@ const authSlice = createSlice({
       state.token = null;
       state.user = null;
       state.error = null;
+
+      if (typeof window !== "undefined") {
+        window.localStorage.removeItem(AUTH_STORAGE_KEY);
+      }
     },
   },
   extraReducers: (builder) => {
@@ -51,6 +80,13 @@ const authSlice = createSlice({
         state.loading = false;
         state.token = action.payload.token;
         state.user = action.payload.user;
+
+        if (typeof window !== "undefined") {
+          window.localStorage.setItem(
+            AUTH_STORAGE_KEY,
+            JSON.stringify({ token: action.payload.token, user: action.payload.user }),
+          );
+        }
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;

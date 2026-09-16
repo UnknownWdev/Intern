@@ -45,10 +45,16 @@ export const loginUserApi = async ({ username, password }: AuthCredentials) => {
     throw new Error(loginData.message || "Login failed");
   }
 
+  const token = loginData.accessToken ?? loginData.token;
+
+  if (!token) {
+    throw new Error("Login response did not include an access token");
+  }
+
   const meResponse = await fetch("https://dummyjson.com/auth/me", {
     method: "GET",
     headers: {
-      Authorization: `Bearer ${loginData.token}`,
+      Authorization: `Bearer ${token}`,
     },
   });
 
@@ -59,7 +65,7 @@ export const loginUserApi = async ({ username, password }: AuthCredentials) => {
   }
 
   return {
-    token: loginData.token,
+    token,
     user: {
       ...meData,
       username: meData.username || username,
