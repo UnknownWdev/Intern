@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { type BlogPost } from "@/services/dummyJsonApi";
+import { CommentsPanel } from "@/components/posts/CommentsPanel";
 
 async function getPost(id: string): Promise<BlogPost | null> {
   try {
@@ -50,6 +51,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
           ))}
         </div>
         <p className="mt-8 text-lg leading-8 text-slate-700">{post.body}</p>
+        <CommentsPanel postId={post.id} />
       </article>
     </main>
   );

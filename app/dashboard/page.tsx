@@ -1,19 +1,14 @@
 "use client";
 
+import { withAuth } from "@/components/auth/withAuth";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/store/store";
 
-export default function DashboardPage() {
+function DashboardPage() {
   const { user } = useSelector((state: RootState) => state.auth);
 
   if (!user) {
-    return (
-      <main className="mx-auto max-w-2xl px-6 py-16">
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-amber-900">
-          Please log in to access the dashboard.
-        </div>
-      </main>
-    );
+    return null;
   }
 
   return (
@@ -33,3 +28,5 @@ export default function DashboardPage() {
     </main>
   );
 }
+
+export default withAuth(DashboardPage);

@@ -8,6 +8,11 @@ type PostsState = {
   loading: boolean;
   error: string | null;
   selectedPost: Post | null;
+  total: number;
+  page: number;
+  limit: number;
+  selectedPostLoading: boolean;
+  selectedPostError: string | null;
 };
 
 const initialState: PostsState = {
@@ -15,14 +20,21 @@ const initialState: PostsState = {
   loading: false,
   error: null,
   selectedPost: null,
+  total: 0,
+  page: 1,
+  limit: 12,
+  selectedPostLoading: false,
+  selectedPostError: null,
 };
 
-export const fetchPosts = createAction<void>("posts/fetchPosts");
+export const fetchPosts = createAction<{ page?: number; limit?: number } | undefined>("posts/fetchPosts");
 export const fetchPostsPending = createAction("posts/fetchPostsPending");
-export const fetchPostsSuccess = createAction<Post[]>("posts/fetchPostsSuccess");
+export const fetchPostsSuccess = createAction<{ posts: Post[]; total: number; page: number; limit: number }>("posts/fetchPostsSuccess");
 export const fetchPostsFailure = createAction<string>("posts/fetchPostsFailure");
 export const fetchPostById = createAction<number>("posts/fetchPostById");
 export const fetchPostByIdSuccess = createAction<Post>("posts/fetchPostByIdSuccess");
+export const fetchPostByIdPending = createAction("posts/fetchPostByIdPending");
+export const fetchPostByIdFailure = createAction<string>("posts/fetchPostByIdFailure");
 export const searchPosts = createAction<string>("posts/searchPosts");
 export const searchPostsPending = createAction("posts/searchPostsPending");
 export const searchPostsSuccess = createAction<Post[]>("posts/searchPostsSuccess");
@@ -51,17 +63,30 @@ const postsSlice = createSlice({
       state.loading = true;
       state.error = null;
     },
-    fetchPostsSuccess: (state, action: PayloadAction<Post[]>) => {
+    fetchPostsSuccess: (state, action: PayloadAction<{ posts: Post[]; total: number; page: number; limit: number }>) => {
       state.loading = false;
-      state.posts = action.payload;
+      state.posts = action.payload.posts;
+      state.total = action.payload.total;
+      state.page = action.payload.page;
+      state.limit = action.payload.limit;
       state.error = null;
     },
     fetchPostsFailure: (state, action: PayloadAction<string>) => {
       state.loading = false;
       state.error = action.payload;
     },
+    fetchPostByIdPending: (state) => {
+      state.selectedPostLoading = true;
+      state.selectedPostError = null;
+    },
     fetchPostByIdSuccess: (state, action: PayloadAction<Post>) => {
+      state.selectedPostLoading = false;
       state.selectedPost = action.payload;
+      state.selectedPostError = null;
+    },
+    fetchPostByIdFailure: (state, action: PayloadAction<string>) => {
+      state.selectedPostLoading = false;
+      state.selectedPostError = action.payload;
     },
     searchPostsPending: (state) => {
       state.loading = true;
@@ -70,6 +95,8 @@ const postsSlice = createSlice({
     searchPostsSuccess: (state, action: PayloadAction<Post[]>) => {
       state.loading = false;
       state.posts = action.payload;
+      state.total = action.payload.length;
+      state.page = 1;
       state.error = null;
     },
     searchPostsFailure: (state, action: PayloadAction<string>) => {

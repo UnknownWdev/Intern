@@ -6,6 +6,8 @@ import { LoginPanel } from "@/components/auth/LoginPanel";
 import { CreatePostForm } from "@/components/posts/CreatePostForm";
 import { PostCard } from "@/components/posts/PostCard";
 import { SearchPosts } from "@/components/posts/SearchPosts";
+import { Pagination } from "@/components/common/Pagination";
+import { showToast } from "@/components/common/ToastProvider";
 import { loginUser, logout } from "@/store/features/auth/authSlice";
 import {
   createPost,
@@ -21,7 +23,7 @@ export default function Home() {
   const { user, token, loading: authLoading, error: authError } = useSelector(
     (state: RootState) => state.auth,
   );
-  const { posts, loading: postsLoading, error: postsError } = useSelector(
+  const { posts, loading: postsLoading, error: postsError, total, page, limit } = useSelector(
     (state: RootState) => state.posts,
   );
 
@@ -43,6 +45,10 @@ export default function Home() {
     dispatch(fetchPosts() as never);
   };
 
+  const handlePageChange = (nextPage: number) => {
+    dispatch(fetchPosts({ page: nextPage, limit }) as never);
+  };
+
   const handleLogin = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -51,11 +57,13 @@ export default function Home() {
 
     if (!trimmedUsername || !trimmedPassword) {
       setLoginValidationError("Please enter both your username and password.");
+      showToast("Please enter both your username and password.", "error");
       return;
     }
 
     setLoginValidationError(null);
     dispatch(loginUser({ username: trimmedUsername, password: trimmedPassword }) as never);
+    showToast("Signing in...", "info");
   };
 
   const handleSearch = () => {
@@ -64,16 +72,19 @@ export default function Home() {
     if (!trimmedQuery) {
       setSearchValidationError(null);
       dispatch(fetchPosts() as never);
+      showToast("Showing all posts", "info");
       return;
     }
 
     if (trimmedQuery.length < 2) {
       setSearchValidationError("Search query must be at least 2 characters long.");
+      showToast("Search query must be at least 2 characters long.", "error");
       return;
     }
 
     setSearchValidationError(null);
     dispatch(searchPosts(trimmedQuery) as never);
+    showToast(`Searching for "${trimmedQuery}"`, "info");
   };
 
   const handleCreatePost = () => {
@@ -105,6 +116,7 @@ export default function Home() {
         reactions: { likes: 0, dislikes: 0 },
       }) as never,
     );
+    showToast("Post created successfully", "success");
 
     setTitle("");
     setBody("");
@@ -112,6 +124,7 @@ export default function Home() {
 
   const handleDeletePost = (id: number) => {
     dispatch(deletePost(id) as never);
+    showToast("Post deleted", "success");
   };
 
   const handleUpdatePost = (id: number) => {
@@ -124,32 +137,33 @@ export default function Home() {
         },
       }) as never,
     );
+    showToast("Post updated", "success");
   };
 
   return (
-    <main className="min-h-screen bg-[#f6f4ef] px-6 py-10 text-slate-900">
+    <main className="min-h-screen bg-background px-6 py-10 text-foreground">
       <div className="mx-auto max-w-6xl">
-        <header className="mb-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <header className="mb-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">
                 DummyJSON Blog
               </p>
-              <h1 className="mt-2 text-3xl font-bold md:text-4xl">Redux-powered posts</h1>
+              <h1 className="mt-2 text-3xl font-bold text-slate-900 md:text-4xl dark:text-slate-100">Redux-powered posts</h1>
             </div>
 
             {token && user ? (
               <div className="flex items-center gap-3">
                 <div className="text-right">
-                  <p className="text-sm font-medium">
+                  <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
                     {user.firstName} {user.lastName}
                   </p>
-                  <p className="text-xs text-slate-500">@{user.username}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">@{user.username}</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => dispatch(logout())}
-                  className="rounded-full border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700"
+                  className="rounded-full border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 dark:border-slate-700 dark:text-slate-200"
                 >
                   Logout
                 </button>
@@ -169,9 +183,9 @@ export default function Home() {
         </header>
 
         {token && user && (
-          <section className="mb-8 grid gap-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm lg:grid-cols-[1.2fr_0.8fr]">
+          <section className="mb-8 grid gap-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 lg:grid-cols-[1.2fr_0.8fr]">
             <div>
-              <h2 className="mb-4 text-xl font-semibold">Create a new post</h2>
+              <h2 className="mb-4 text-xl font-semibold text-slate-900 dark:text-slate-100">Create a new post</h2>
               <CreatePostForm
                 title={title}
                 body={body}
@@ -185,7 +199,7 @@ export default function Home() {
             </div>
 
             <div>
-              <h2 className="mb-4 text-xl font-semibold">Search posts</h2>
+              <h2 className="mb-4 text-xl font-semibold text-slate-900 dark:text-slate-100">Search posts</h2>
               <SearchPosts
                 query={query}
                 onQueryChange={setQuery}
@@ -199,14 +213,14 @@ export default function Home() {
         )}
 
         {postsLoading && (
-          <div className="mb-6 flex items-center gap-3 text-sm text-slate-600">
-            <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-slate-700" />
+          <div className="mb-6 flex items-center gap-3 text-sm text-slate-600 dark:text-slate-300">
+            <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-slate-700 dark:border-slate-700 dark:border-t-slate-300" />
             Loading posts...
           </div>
         )}
 
         {!postsLoading && postsError && (
-          <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">
+          <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100">
             <p className="font-medium">We couldn’t load the blog right now.</p>
             <p className="mt-1">{postsError}</p>
             <button
@@ -220,8 +234,8 @@ export default function Home() {
         )}
 
         {!postsLoading && !postsError && posts.length === 0 && (
-          <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center text-slate-600">
-            <p className="text-lg font-medium text-slate-800">No posts found.</p>
+          <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
+            <p className="text-lg font-medium text-slate-800 dark:text-slate-100">No posts found.</p>
             <p className="mt-2">Try a different search or publish a new post.</p>
           </div>
         )}
@@ -238,6 +252,10 @@ export default function Home() {
               />
             ))}
           </section>
+        )}
+
+        {!postsLoading && !postsError && posts.length > 0 && (
+          <Pagination currentPage={page} totalPages={Math.ceil(total / limit)} onPageChange={handlePageChange} />
         )}
       </div>
     </main>
