@@ -53,7 +53,7 @@ export default function SignupPage() {
   };
 
   return (
-    <main className="mx-auto max-w-md px-6 py-16 text-[var(--foreground)]">
+    <main className="mx-auto max-w-md px-6 py-16 text-foreground">
       <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Create account</h1>
         <p className="mt-3 text-slate-600 dark:text-slate-300">Sign up to publish your own blog posts.</p>
