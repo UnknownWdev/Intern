@@ -13,11 +13,13 @@ export const store = configureStore({
     posts: postsReducer,
     comments: commentsReducer,
   },
+  // Keep async work in sagas so every request has visible Redux lifecycle actions.
   devTools: process.env.NODE_ENV !== "production" ? { name: "Mindful Notes Blog", trace: true } : false,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({ thunk: false }).concat(sagaMiddleware),
 });
 
+// Start the root watcher once, after the store has been created.
 sagaMiddleware.run(rootSaga);
 
 export type RootState = ReturnType<typeof store.getState>;

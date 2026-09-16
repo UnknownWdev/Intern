@@ -10,6 +10,7 @@ import {
 
 function* loginUserSaga(action: ReturnType<typeof loginUser>) {
   try {
+    // Pending, success, and failure actions make the async state observable in DevTools and the UI.
     yield put(loginUserPending());
 
     const credentials: AuthCredentials = action.payload;
@@ -27,6 +28,7 @@ function* loginUserSaga(action: ReturnType<typeof loginUser>) {
 
 export function* watchAuth() {
   yield takeLatest(loginUser.type, loginUserSaga);
+  // Logout also clears browser persistence so a refresh cannot restore an old session.
   yield takeLatest(logout.type, function* () {
     if (typeof window !== "undefined") {
       window.localStorage.removeItem("dummyjson-auth");

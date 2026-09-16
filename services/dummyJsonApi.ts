@@ -81,6 +81,7 @@ export const signupUserApi = async ({ username, password, email }: AuthCredentia
 };
 
 export const fetchPostsApi = async ({ limit = 12, skip = 0 }: { limit?: number; skip?: number } = {}) => {
+  // Keep pagination in the API adapter so components and sagas work with page numbers.
   const response = await fetch(`https://dummyjson.com/posts?limit=${limit}&skip=${skip}`);
   const data = await response.json();
 

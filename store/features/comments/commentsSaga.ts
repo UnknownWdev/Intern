@@ -20,6 +20,7 @@ function* fetchCommentsSaga(action: ReturnType<typeof fetchComments>) {
 function* addCommentSaga(action: ReturnType<typeof addComment>) {
   try {
     yield put(addCommentPending());
+    // Comments are protected operations, so the saga rejects unauthenticated requests before I/O.
     const token: string | null = yield select(getToken);
     if (!token) throw new Error("Sign in to add a comment");
     const comment: Comment = yield call(addCommentApi, action.payload.postId, action.payload.body, token);

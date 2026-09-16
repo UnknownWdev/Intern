@@ -45,6 +45,7 @@ function* fetchPostsSaga(action: ReturnType<typeof fetchPosts>) {
     const options = action.payload ?? {};
     const page = options.page ?? 1;
     const limit = options.limit ?? 12;
+    // DummyJSON uses offset pagination; translating page here keeps the UI API simple.
     const result: { posts: BlogPost[]; total: number } = yield call(fetchPostsApi, { limit, skip: (page - 1) * limit });
     yield put(fetchPostsSuccess({ ...result, page, limit }));
   } catch (error) {
@@ -73,6 +74,7 @@ function* searchPostsSaga(action: ReturnType<typeof searchPosts>) {
 function* createPostSaga(action: ReturnType<typeof createPost>) {
   try {
     yield put(createPostPending());
+    // Read the current token at execution time, avoiding stale credentials in dispatched actions.
     const token: string | null = yield select(getToken);
     if (!token) throw new Error("Sign in to create a post");
     const post: BlogPost = yield call(createPostApi, action.payload, token);

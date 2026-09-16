@@ -10,6 +10,7 @@ function StoreInitializer() {
   const dispatch = useDispatch();
 
   useEffect(() => {
+    // Restore auth only on the client because localStorage is unavailable during SSR.
     const saved = window.localStorage.getItem("dummyjson-auth");
     if (saved) {
       try {
