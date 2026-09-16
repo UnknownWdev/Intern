@@ -15,10 +15,8 @@ export default function LoginPage() {
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    dispatch(loginUser({ username: username.trim(), password }))
-      .unwrap()
-      .then(() => router.push("/dashboard"))
-      .catch(() => undefined);
+    dispatch(loginUser({ username: username.trim(), password }));
+    router.push("/dashboard");
   };
 
   return (

@@ -1,5 +1,5 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { loginUserApi, type User, type AuthCredentials } from "@/services/dummyJsonApi";
+import { createAction, createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import { type User, type AuthCredentials } from "@/services/dummyJsonApi";
 
 export type { User } from "@/services/dummyJsonApi";
 
@@ -42,19 +42,10 @@ const initialState: AuthState = {
   error: null,
 };
 
-export const loginUser = createAsyncThunk<
-  { token: string; user: User },
-  AuthCredentials,
-  { rejectValue: string }
->("auth/loginUser", async (credentials, { rejectWithValue }) => {
-  try {
-    return await loginUserApi(credentials);
-  } catch (error) {
-    return rejectWithValue(
-      error instanceof Error ? error.message : "Unable to sign in",
-    );
-  }
-});
+export const loginUser = createAction<AuthCredentials>("auth/loginUser");
+export const loginUserSuccess = createAction<{ token: string; user: User }>("auth/loginUserSuccess");
+export const loginUserFailure = createAction<string>("auth/loginUserFailure");
+export const restoreAuth = createAction<{ token: string | null; user: User | null }>("auth/restoreAuth");
 
 const authSlice = createSlice({
   name: "auth",
@@ -64,36 +55,51 @@ const authSlice = createSlice({
       state.token = null;
       state.user = null;
       state.error = null;
+      state.loading = false;
 
       if (typeof window !== "undefined") {
         window.localStorage.removeItem(AUTH_STORAGE_KEY);
       }
     },
-  },
-  extraReducers: (builder) => {
-    builder
-      .addCase(loginUser.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(loginUser.fulfilled, (state, action) => {
-        state.loading = false;
-        state.token = action.payload.token;
-        state.user = action.payload.user;
+    restoreAuth: (state, action: PayloadAction<{ token: string | null; user: User | null }>) => {
+      state.token = action.payload.token;
+      state.user = action.payload.user;
+      state.error = null;
+    },
+    loginUserSuccess: (state, action: PayloadAction<{ token: string; user: User }>) => {
+      state.loading = false;
+      state.token = action.payload.token;
+      state.user = action.payload.user;
+      state.error = null;
 
-        if (typeof window !== "undefined") {
-          window.localStorage.setItem(
-            AUTH_STORAGE_KEY,
-            JSON.stringify({ token: action.payload.token, user: action.payload.user }),
-          );
-        }
-      })
-      .addCase(loginUser.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload || "Unable to sign in";
-      });
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(
+          AUTH_STORAGE_KEY,
+          JSON.stringify({ token: action.payload.token, user: action.payload.user }),
+        );
+      }
+    },
+    loginUserFailure: (state, action: PayloadAction<string>) => {
+      state.loading = false;
+      state.error = action.payload;
+    },
+    loginUserPending: (state) => {
+      state.loading = true;
+      state.error = null;
+    },
+    loginUserReset: (state) => {
+      state.error = null;
+    },
   },
 });
 
-export const { logout } = authSlice.actions;
+export const {
+  logout,
+  restoreAuth: restoreAuthState,
+  loginUserPending,
+  loginUserReset,
+  loginUserSuccess: loginUserSucceeded,
+  loginUserFailure: loginUserFailed,
+} = authSlice.actions;
+
 export default authSlice.reducer;
