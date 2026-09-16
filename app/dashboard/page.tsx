@@ -12,12 +12,12 @@ function DashboardPage() {
   }
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-16">
-      <h1 className="text-4xl font-bold text-slate-900">Dashboard</h1>
-      <p className="mt-4 text-lg text-slate-600">
+    <main className="min-h-screen bg-background px-6 py-16 text-foreground">
+      <h1 className="text-4xl font-bold text-slate-900 dark:text-slate-100">Hello Admin</h1>
+      <p className="mt-4 text-lg text-slate-600 dark:text-slate-300">
         Welcome back, {user.firstName} {user.lastName}.
       </p>
-      <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-5 text-sm text-slate-700 shadow-sm">
+      <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-5 text-sm text-slate-700 shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200">
         <p>
           <span className="font-semibold">Username:</span> @{user.username}
         </p>
