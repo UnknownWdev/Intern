@@ -49,7 +49,11 @@ export const loginUserApi = async ({ username, password }: AuthCredentials) => {
     throw new Error("Login response did not include an access token");
   }
 
-  const meResponse = await apiClient.get("/auth/me");
+  const meResponse = await apiClient.get("/auth/me", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
   const meData = meResponse.data;
 
   if (!meData || meData.message) {
